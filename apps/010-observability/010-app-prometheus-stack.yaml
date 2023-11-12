@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://prometheus-community.github.io/helm-charts'
+    targetRevision: 39.2.1
+    helm:
+      skipCrds: true
+      values: |
+        prometheus:
+          prometheusSpec:
+            serviceMonitorSelectorNilUsesHelmValues: false
+            retention: {{ .Values.observability.retention }}
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: {{ .Values.observability.storageClass }}
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: {{ .Values.observability.storageSize }}
+        grafana:
+          sidecar:
+            dashboards:
+              searchNamespace: ALL
+          service:
+            type: ClusterIP
+          additionalDataSources:
+            - name: loki
+              type: loki
+              url: http://loki.observability.svc.cluster.local:3100
+            - name: tempo
+              type: tempo
+              url: http://tempo.observability.svc.cluster.local:3100
+
+
+    chart: kube-prometheus-stack
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
