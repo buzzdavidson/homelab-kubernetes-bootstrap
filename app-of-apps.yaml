@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps
+  namespace: argocd
+spec:
+  source:
+    repoURL: https://github.com/buzzdavidson/homelab-bootstrap.git
+    targetRevision: HEAD
+    path: apps
+  destination:
+    name: in-cluster
+    namespace: argocd
+  project: default
