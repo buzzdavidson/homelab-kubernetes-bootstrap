@@ -18,15 +18,15 @@ spec:
         prometheus:
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
-            retention: {{ .Values.observability.retention }}
+            retention: "5d"
             storageSpec:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: {{ .Values.observability.storageClass }}
+                  storageClassName: "local-path"
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
-                      storage: {{ .Values.observability.storageSize }}
+                      storage: "10Gi"
         grafana:
           sidecar:
             dashboards:
